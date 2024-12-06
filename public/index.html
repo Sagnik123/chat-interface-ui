@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with Rasa</title>
+  <link rel="stylesheet" href="/src/ChatPanel.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Include Socket.IO client library -->
+  <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+  <script>
+    // Initialize Socket.IO connection
+    const socket = io('http://localhost:5005');
+
+    socket.on('connect', () => {
+      console.log('Connected to Socket.IO server');
+
+      // Request a session
+      socket.emit('session_request', {}, (data) => {
+        if (data && data.session_id) {
+          console.log('Received session_id:', data.session_id);
+          window.sessionId = data.session_id;
+        } else {
+          console.error('Session ID is not defined in the response');
+        }
+      });
+    });
+
+    socket.on('new_message', (message) => {
+      console.log('New message from agent:', message);
+      window.socket.emit('add_message', message);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from Socket.IO server');
+    });
+
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`Reconnection attempt ${attemptNumber}`);
+    });
+
+    // Expose socket to window for access in React component
+    window.socket = socket;
+  </script>
+
+  <!-- Include your React application script -->
+  <!-- <script src="/static/js/bundle.js"></script> -->
+</body>
+</html>
